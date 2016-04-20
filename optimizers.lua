@@ -67,6 +67,7 @@ M.performTrainIteration = function(fullState)
 	end
     fullState.trainModelOut = fullState.network:forward(batchTrainInputs)
 
+
     fullState.trainSetLoss[fullState.trainingIteration] = fullState.trainSetLoss[fullState.trainingIteration] + 
       fullState.criterion:forward(fullState.trainModelOut,
       sleep_eeg.utils.indexIntoTensorOrTableOfTensors(trainTargets,1,miniBatchTrials)) * miniBatchWeight

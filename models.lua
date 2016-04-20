@@ -73,9 +73,10 @@ M.createFullyConnectedNetwork = function(egInputBatch, numHiddenUnits,
 	if net_args.cuda then
 	  require 'cunn'
 	end
-	local numTimePoints = egInputBatch:size(2)
-	local numInputUnits = egInputBatch:size(3)
-	local numTotalFeatures = numTimePoints * numInputUnits
+	local numX = egInputBatch:size(2)
+	local numY = egInputBatch:size(3)
+	local numZ = egInputBatch:size(4)
+	local numTotalFeatures = numX * numY * numZ
 	assert(egInputBatch and numHiddenUnits and numHiddenLayers and numOutputClasses)
 	assert(numHiddenLayers >= 0)
 	dropout_prob = dropout_prob or -1
@@ -91,7 +92,7 @@ M.createFullyConnectedNetwork = function(egInputBatch, numHiddenUnits,
 		else
 			prev = input
 		end
-		prev = nn.View(-1):setNumInputDims(2)(prev)
+		prev = nn.View(-1):setNumInputDims(3)(prev)
 		local toClasses = {}
 		local toSubjects = {}
 		if numHiddenLayers > 1 then
@@ -151,7 +152,7 @@ M.createFullyConnectedNetwork = function(egInputBatch, numHiddenUnits,
 		if dropout_prob > 0 then
 			model:add(nn.Dropout(dropout_prob))
 		end
-		model:add(nn.View(-1):setNumInputDims(2)) --flatten
+		model:add(nn.View(-1):setNumInputDims(3)) --flatten
 
 		if numHiddenLayers > 1 then
 			local lastLayer = numTotalFeatures

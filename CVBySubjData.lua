@@ -53,29 +53,22 @@ function CVBySubjData:__loadSubjData(filename, subj_data_args)
 			exported (NOT ANYMORE)
 		- args: settings used to export this data (NOT ANYMORE)
 		- conds: table which tells us which indices belong to which classes
-		- dimensions: table with the following fields:
-				- freqs
-				- total_num_features
-				- times
-				- chans 
-				- shape
 		- data: data tensor with [num_trials x num_chans x num_timepoints]
 		- labels: (integer )class indicator tensor with [num_trials x 1] dimensions
 		- subject_ids: table of string subj id, with indicies [1 to num_trials]
 	--]]
-  local loadedData = sleep_eeg.utils.matioHelper(filename, {'data', 'subject_ids', 'labels', 'dimensions', 'conds','extras'})
+  local loadedData = sleep_eeg.utils.matioHelper(filename, {'data', 'subject_ids', 'labels', 'conds','extras'})
 
   assert(loadedData['data'] and loadedData['subject_ids'] and 
-    loadedData['labels'] and loadedData['dimensions'] and loadedData['conds'], 
+    loadedData['labels']  and loadedData['conds'], 
     'One of the following variables is expected, but not present in file:' ..
-    'data, subject_ids, data, labels, dimensions, conds')
+    'data, subject_ids, data, labels, conds')
 
 	self._all_data = loadedData['data']:transpose(2,3)
   loadedData['data'] = nil
 	self.subjectIDs = loadedData['subject_ids']
 	local targets = loadedData['labels']
 	self._all_targets = torch.squeeze(targets) --remove singleton dimension
-	self.dimensions = loadedData['dimensions']
   self.classnames = loadedData['conds']
 
   -- permute dimensions if our data is spatial because spatial conv modules expects
@@ -224,6 +217,7 @@ function CVBySubjData:__splitDataAcrossSubjs(...)
 	for subj_idx, subj_id in ipairs(self.subj_ids) do
 		self.num_subjects = self.num_subjects + 1
 		for _, class in ipairs(self.classes) do
+      print('subj_id', subj_id, 'class', class)
 			local queryCondition = {subj_id = subj_id, class = class}
 			local trials = self.dataframe:query('inter',queryCondition, {'trial'}).trial
 			local numTrials = #trials

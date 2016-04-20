@@ -29,11 +29,14 @@ M.normalizeData = function(data,mean_, std_)
   local numExamples = data:size(1)
   local std = std_ or data:std(1)
   local mean = mean_ or data:mean(1)
+  
+  safe_std = std:clone()
+  safe_std[std:eq(0)] = 1
 
   -- actually normalize here
   for i = 1, numExamples do
      data[i]:add(-mean)
-     data[i]:cdiv(std)
+     data[i]:cdiv(safe_std)
   end
 
   return mean, std
@@ -543,44 +546,11 @@ end
 
 M.getDataFilenameFromArgs = function(args)
   local fileName = ''
-  if args.subj_data.wake then
-    fileNameRoot = 'wake_ERP_cuelocked_all_' .. args.subj_data.temporal_resolution .. 'ms_1000'
-  elseif args.subj_data.wake_test then 
-    fileNameRoot = 'waketest_all_ERP_cuelocked_all_' .. args.subj_data.temporal_resolution .. 'ms_1000'
-  else
-    if args.subj_data.SO_locked then
-      fileNameRoot = 'sleep_ERP_SOlocked_all_phase_SO1'
-    else
-      fileNameRoot = 'sleep_ERP_cuelocked_all_' .. args.subj_data.temporal_resolution .. 'ms_1000'
-    end
-  end
-
-  --for ERP_diff, we just replace "ERP" with "ERP_diff"
-  if args.subj_data.ERP_diff then
-    fileNameRoot = fileNameRoot:gsub('ERP','ERP_diff')
-  end
-
-  --for min/maxPresentations, we just append "min/maxPres"
-  if args.subj_data.min_presentations >= 1 then
-    fileNameRoot = fileNameRoot .. '_minPres' .. args.subj_data.min_presentations
-  end
-  if args.subj_data.max_presentations >= 1 then
-    fileNameRoot = fileNameRoot .. '_maxPres' .. args.subj_data.max_presentations
-  end
-  
-  --for "ERP_I", we have to replaced cuelocked with cuelocked_I
-  if args.subj_data.ERP_I then
-    fileNameRoot = fileNameRoot:gsub('cuelocked','cuelocked_I')
-  end
-
-  if args.subj_data.spatial_chans then
-    fileNameRoot = fileNameRoot .. '_spatial' .. args.subj_data.spatial_scale
-  end
+  local fileNameRoot = 'trimmed_data'
 
   if args.float_precision then
-	  fileNameRoot = fileNameRoot .. 'Single'
+	  fileNameRoot = fileNameRoot .. '_single'
   end
-
 
   if args.subj_data.sim_type > 0 then
     if args.subj_data.sim_type == 1 or args.subj_data.sim_type == 2 then
@@ -590,8 +560,7 @@ M.getDataFilenameFromArgs = function(args)
     end
   end
 
-
-  fileName = './torch_exports/' .. fileNameRoot .. '.mat'
+  fileName = './raw_data/' .. fileNameRoot .. '.mat'
 
   return fileName
 end
@@ -621,5 +590,13 @@ M.indexIntoTensorOrTableOfTensors = function(source, dim, idxs)
  end
  return result
 end
+
+hasNans = function(t)
+  if t:eq(t):sum() < t:numel() then
+    return true
+  end
+  return false
+end
+
 
 return M

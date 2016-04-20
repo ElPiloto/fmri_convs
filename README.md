@@ -1,9 +1,9 @@
-# eeg_convs
+# fmri_convs
 
 ### setup  
   
 expects following directories added:  
-`torch_exports/` - location of data
+`raw_data/` - location of data
 
 modify `dotrc.lua` to set the following variables based on your environment variables (e.g. $USER and $HOME):  
 - `dotrc.save_dir` to output location for plots and trained networks  
